@@ -10,12 +10,25 @@ class TextToSpeech extends StatefulWidget {
 enum TtsState{playing , stopped} 
 class _TextToSpeechState extends State<TextToSpeech> {
   String? tts;
-  late FlutterTts flutterTts;
+   FlutterTts flutterTts = FlutterTts();
   TtsState ttsState = TtsState.stopped;
+  double volume = 1.0;
+double pitch = 1.0;
+double speechRate = 0.5;
+List<String>? Languages;
+String LangCode = "en-US";
   @override
   void initState() {
     super.initState();
     initTts();
+    init();
+  }
+  @override
+  init()async{
+    Languages = List<String>.from(await flutterTts.getLanguages);
+    setState(() {
+      
+    });
   }
   @override
   void dispose() {
@@ -63,7 +76,8 @@ initTts()async{
         ),
         body: Center(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+             mainAxisAlignment:  MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               TextField(
                 onChanged: (value) {
@@ -72,9 +86,55 @@ initTts()async{
                   });
                 },
               ),
-            TextButton(onPressed:speak, child: Text('play')),
+            Row(
+              mainAxisAlignment:  MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                TextButton(onPressed:speak, child: Text('play')),
             TextButton(onPressed:stop, child: Text('stop')),
-             
+              ],
+            ),
+             Column(
+               mainAxisAlignment:  MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+Slider(min: 0.0,max: 1.0, value: volume, onChanged: (value) {
+  setState(() {
+    volume =value;
+  });
+},),
+Slider(min: 0.0,max: 0.5, value: speechRate, onChanged: (value) {
+  setState(() {
+    speechRate =value;
+  });
+},),
+Slider(min: 0.0,max: 1.0, value: pitch, onChanged: (value) {
+  setState(() {
+    pitch =value;
+  });
+},),
+if(Languages != null)
+DropdownButton<String>(
+  value: LangCode,
+  focusColor: Colors.white,
+  //  value: LangCode,
+style: const TextStyle (color: Colors.white),
+iconEnabledColor: Colors.black,
+  items: Languages!
+.map<DropdownMenuItem<String>>((String? value) {
+return DropdownMenuItem<String>(
+value: value!, 
+child: Text(
+value,
+style: const TextStyle (color: Colors.black),
+),
+); }).toList(), onChanged:(String? value) {
+  setState(() {
+    LangCode =value!;
+  });
+},)
+              ],
+             )
             
                
              
@@ -84,9 +144,11 @@ initTts()async{
       );
   }
    Future speak()async{
-await flutterTts.setVolume(1);
-await flutterTts.setSpeechRate(0.5);
-await flutterTts.setPitch(1);
+await flutterTts.setVolume(volume);
+await flutterTts.setSpeechRate(speechRate);
+await flutterTts.setPitch(pitch);
+await flutterTts.setLanguage(LangCode);
+
 if(tts != null){
   if(tts!.isNotEmpty){
 await flutterTts.speak(tts!);
